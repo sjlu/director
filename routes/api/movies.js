@@ -16,7 +16,10 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
 
-  couchpotato.requestMovie(req.body.tmdb_id)
+  tmdb.getMovie(req.body.movie.id)
+    .then(function(movie) {
+      return couchpotato.requestMovie(movie.imdb_id)
+    })
     .then(function() {
       res.send(200)
     })
