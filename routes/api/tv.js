@@ -2,41 +2,8 @@ var express = require('express');
 var router = express.Router();
 var sickbeard = require('../../lib/sickbeard');
 var tmdb = require('../../lib/tmdb');
-var models = require('../../models');
 var Promise = require('bluebird');
 var _ = require('lodash');
-
-var getShow = function(sickbeardShow) {
-
-
-  return models.Show.findOne({
-    tvdb_id: sickbeardShow.tvdb_id
-  }).exec().then(function(show) {
-    if (!show) {
-      return models.Show.create({
-        tvdb_id: sickbeardShow.tvdb_id,
-        name: sickbeardShow.show_name
-      })
-    }
-
-    return show;
-  })
-  .then(function(show) {
-    if (!show.tmdb_id || !show.poster_path) {
-      return tmdb.getShow(show.tvdb_id)
-        .then(function(tmdbShow) {
-          if (tmdbShow && tmdbShow.id) {
-            show.tmdb_id = tmdbShow.id;
-            show.poster_path = tmdbShow.poster_path;
-          }
-          return show.save()
-        })
-    }
-
-    return show
-  })
-
-}
 
 router.get('/shows', function(req, res, next) {
 
@@ -44,9 +11,6 @@ router.get('/shows', function(req, res, next) {
     .bind({})
     .then(function() {
       return sickbeard.getShows();
-    })
-    .map(function(sickbeardShow) {
-      return getShow(sickbeardShow)
     })
     .then(function(shows) {
       res.json(shows);
